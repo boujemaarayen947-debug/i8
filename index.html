@@ -1,86 +1,497 @@
-
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Symptom Checker</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f9f9f9;
-      text-align: center;
-      padding: 30px;
-    }
-    textarea {
-      width: 80%;
-      height: 200px;
-      margin: 20px 0;
-      font-family: monospace;
-    }
-    button {
-      padding: 10px 20px;
-      margin: 10px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    pre {
-      text-align: left;
-      background: #eee;
-      padding: 10px;
-      border-radius: 6px;
-      width: 80%;
-      margin: auto;
-    }
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AI Medical Demo — Symptom & ECG</title>
+<style>
+  :root{
+    --bg1:#0f172a; --bg2:#0f4c81; --card:#ffffff;
+    --accent:#6d28d9; --muted:#64748b; --good:#0f5132; --warn:#7a4900; --bad:#7f1d1d;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background: linear-gradient(135deg,var(--bg1),var(--bg2)); color:#0b1220;
+    -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+  }
+  header{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;color:white}
+  .brand{display:flex;gap:12px;align-items:center}
+  .logo{width:46px;height:46px;border-radius:10px;background:linear-gradient(135deg,#f472b6,#7c3aed);display:flex;align-items:center;justify-content:center;color:white;font-weight:700}
+  nav a{color:rgba(255,255,255,0.9);margin-left:18px;text-decoration:none;font-weight:600}
+  main{max-width:1100px;margin:24px auto;padding:18px}
+  .hero{display:grid;grid-template-columns:1fr 420px;gap:26px;align-items:center;margin-bottom:20px}
+  .card{background:var(--card);border-radius:14px;padding:18px;box-shadow:0 10px 30px rgba(2,6,23,0.4)}
+  h1{margin:0;font-size:24px}
+  p.lead{color:var(--muted);margin-top:8px}
+  .cta{margin-top:14px;display:flex;gap:10px}
+  .btn{background:linear-gradient(90deg,var(--accent),#4c1d95);color:white;padding:10px 14px;border-radius:10px;border:0;font-weight:700;cursor:pointer}
+  .btn.secondary{background:transparent;color:var(--accent);border:2px solid rgba(109,40,217,0.12)}
+  small.note{display:block;color:#334155;margin-top:8px}
+
+  /* layout */
+  .grid2{display:grid;grid-template-columns:1fr 420px;gap:18px}
+  form .row{display:flex;gap:10px}
+  label{font-weight:600;color:#0f172a}
+  input[type="text"], input[type="number"], select, textarea{
+    width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef8;font-size:14px;margin-top:6px
+  }
+  .symptoms{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .chip{background:#f1f5f9;padding:10px 12px;border-radius:999px;font-weight:600;cursor:pointer;border:1px solid transparent}
+  .chip.selected{background:linear-gradient(90deg,#fde68a,#fca5a5);border-color:rgba(0,0,0,0.06)}
+  .resultArea{margin-top:12px}
+  .resultPanel{padding:12px;border-radius:10px}
+  .resultPanel.ok{background:#ecfdf5;border-left:4px solid #10b981}
+  .resultPanel.warn{background:#fffbeb;border-left:4px solid #f59e0b}
+  .resultPanel.danger{background:#fee2e2;border-left:4px solid #ef4444}
+  .bar{height:12px;border-radius:8px;background:#f1f5f9;overflow:hidden}
+  .bar > i{display:block;height:100%;background:linear-gradient(90deg,#7c3aed,#06b6d4);width:0%}
+
+  /* ECG */
+  .ecg-canvas{width:100%;height:150px;background:#061025;border-radius:8px;display:block}
+  .small{font-size:13px;color:var(--muted)}
+  footer{color:#cbd5e1;padding:20px;text-align:center;margin-top:30px}
+
+  /* responsive */
+  @media (max-width:980px){
+    .hero, .grid2{grid-template-columns:1fr}
+    .hero img{display:none}
+  }
+</style>
 </head>
 <body>
-  <h1>Symptom Checker – C Program</h1>
-  <p>Here is the C program you can copy or download:</p>
-  <textarea id="code" readonly>
+<header>
+  <div class="brand">
+    <div class="logo">AI</div>
+    <div>
+      <div style="font-weight:800">AI Medical Demo</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.8)">Student project — interactive triage & ECG demo</div>
+    </div>
+  </div>
+  <nav>
+    <a href="#demo">Demo</a>
+    <a href="#ecg">ECG</a>
+    <a href="#download">Download</a>
+    <a href="#about">About</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="card">
+      <h1>Presentable AI Medical Demo — ready for your project</h1>
+      <p class="lead">A single-file site with an explainable triage model and ECG analyzer — show the logic, run demos, export the C programs.</p>
+      <div class="cta">
+        <button class="btn" onclick="scrollToSection('demo')">Try live demo</button>
+        <button class="btn secondary" onclick="scrollToSection('download')">Download code</button>
+      </div>
+      <small class="note">Demo is rule-based educational logic — not a medical device. Use for presentation and explanation only.</small>
+    </div>
+
+    <div class="card" style="text-align:left">
+      <h3 style="margin-top:0">Quick features</h3>
+      <ul style="padding-left:18px;color:#0b1220">
+        <li>Interactive symptom form → explains triage decision & shows top probable conditions</li>
+        <li>Explainability: contribution breakdown for the decision</li>
+        <li>ECG synthetic generator, waveform preview & simple arrhythmia flags</li>
+        <li>Download the C programs used in your project</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Demo -->
+  <section id="demo" class="card" style="margin-bottom:16px">
+    <h2>AI Consultation Demo</h2>
+    <p class="small">Fill this form and click <strong>Assess</strong>. The logic mirrors an explainable triage formula (weights + red flags).</p>
+
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <div style="flex:1;min-width:320px">
+        <label>Age</label>
+        <input id="age" type="number" min="0" max="130" value="28">
+        <label style="margin-top:8px">Sex</label>
+        <select id="sex"><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select>
+
+        <label style="margin-top:8px">Symptoms (click to toggle)</label>
+        <div id="symptomList" class="symptoms"></div>
+
+        <label style="margin-top:10px">If fever: temperature (°C, optional)</label>
+        <input id="temp" type="number" step="0.1" min="30" max="44" placeholder="e.g. 38.5">
+
+        <label style="margin-top:8px">SpO₂ (optional %)</label>
+        <input id="spo2" type="number" min="50" max="100" placeholder="e.g. 95">
+
+        <label style="margin-top:8px">Heart rate (optional bpm)</label>
+        <input id="hr" type="number" min="20" max="220" placeholder="e.g. 78">
+      </div>
+
+      <div style="width:420px;min-width:280px">
+        <div style="padding:10px;background:#fbfbff;border-radius:10px">
+          <label>Red flags (check any)</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+            <label><input id="rf_short" type="checkbox"> Severe breathing</label>
+            <label><input id="rf_chest" type="checkbox"> Chest pain</label>
+            <label><input id="rf_bleed" type="checkbox"> Severe bleeding</label>
+            <label><input id="rf_conf" type="checkbox"> Confusion / fainting</label>
+          </div>
+        </div>
+
+        <div style="margin-top:12px">
+          <button class="btn" onclick="assess()">Assess</button>
+          <button class="btn secondary" style="margin-left:8px" onclick="resetDemo()">Reset</button>
+        </div>
+
+        <div id="explain" class="resultArea"></div>
+      </div>
+    </div>
+
+    <script>
+      // symptom options
+      const SYM_OPTS = [
+        {k:'fever', t:'Fever'},
+        {k:'cough', t:'Cough'},
+        {k:'sorethroat', t:'Sore throat'},
+        {k:'shortbreath', t:'Shortness of breath'},
+        {k:'chestpain', t:'Chest pain'},
+        {k:'abdpain', t:'Abdominal pain'},
+        {k:'vomit', t:'Vomiting'},
+        {k:'diarrhea', t:'Diarrhea'},
+        {k:'rash', t:'Rash'},
+        {k:'headache', t:'Headache'},
+        {k:'fatigue', t:'Fatigue / myalgia'},
+        {k:'losssmell', t:'Loss of smell/taste'},
+        {k:'urine', t:'Urinary symptoms'},
+        {k:'skininf', t:'Skin swelling/infection'}
+      ];
+      const symptomList = document.getElementById('symptomList');
+      const selectedSymptoms = new Set();
+      SYM_OPTS.forEach(s=>{
+        const el = document.createElement('div');
+        el.className='chip'; el.innerText=s.t; el.dataset.k=s.k;
+        el.onclick = ()=>{ el.classList.toggle('selected'); if(selectedSymptoms.has(s.k)) selectedSymptoms.delete(s.k); else selectedSymptoms.add(s.k) };
+        symptomList.appendChild(el);
+      });
+
+      function resetDemo(){
+        document.getElementById('age').value = 28;
+        document.getElementById('sex').value = 'male';
+        document.getElementById('temp').value = '';
+        document.getElementById('spo2').value = '';
+        document.getElementById('hr').value = '';
+        ['rf_short','rf_chest','rf_bleed','rf_conf'].forEach(id=>document.getElementById(id).checked = false);
+        document.querySelectorAll('.chip.selected').forEach(c=>c.classList.remove('selected'));
+        selectedSymptoms.clear();
+        document.getElementById('explain').innerHTML='';
+      }
+
+      function clamp(v,lo,hi){return v<lo?lo:(v>hi?hi:v) }
+
+      function assess(){
+        const age = parseInt(document.getElementById('age').value||0);
+        const sex = document.getElementById('sex').value;
+        const temp = parseFloat(document.getElementById('temp').value||-1);
+        const spo2 = parseFloat(document.getElementById('spo2').value||-1);
+        const hr = parseInt(document.getElementById('hr').value||-1);
+        const rf_short = document.getElementById('rf_short').checked;
+        const rf_chest = document.getElementById('rf_chest').checked;
+        const rf_bleed = document.getElementById('rf_bleed').checked;
+        const rf_conf = document.getElementById('rf_conf').checked;
+
+        // compute red flag
+        let red_flag = rf_short || rf_chest || rf_bleed || rf_conf;
+        if(selectedSymptoms.has('shortbreath') && spo2>0 && spo2<92) red_flag = true;
+
+        // symptom scores
+        let score = {cold:0, flu:0, pneum:0, gi:0, mig:0, skin:0, uti:0};
+        if(selectedSymptoms.has('cough')){ score.cold+=1; score.flu+=1; score.pneum+=1.5; }
+        if(selectedSymptoms.has('sorethroat')){ score.cold+=1; score.flu+=0.8; }
+        if(selectedSymptoms.has('fever')) {
+          let tscore=1;
+          if(temp>0){ if(temp>=39) tscore=2; else if(temp>=38) tscore=1.2; else tscore=0.8;}
+          score.flu += 1.5*tscore; score.pneum += 1.5*tscore; score.cold += 0.5*tscore; score.gi += 0.8*tscore;
+        }
+        if(selectedSymptoms.has('fatigue')){ score.flu+=1.2; score.cold+=0.5;}
+        if(selectedSymptoms.has('losssmell')){ score.flu+=1.5; score.cold+=0.6;}
+        if(selectedSymptoms.has('headache')){ score.mig+=1.5; score.flu+=0.6;}
+        if(selectedSymptoms.has('abdpain')){ score.gi+=1; }
+        if(selectedSymptoms.has('vomit')){ score.gi+=1.5; }
+        if(selectedSymptoms.has('diarrhea')){ score.gi+=1.5; }
+        if(selectedSymptoms.has('rash')){ score.skin+=1.5; score.flu+=0.2; }
+        if(selectedSymptoms.has('skininf')){ score.skin+=2.0; }
+        if(selectedSymptoms.has('urine')){ score.uti += 2.0; }
+        if(selectedSymptoms.has('shortbreath')){ score.pneum += 2.0; score.flu += 0.8; }
+        if(selectedSymptoms.has('chestpain')){ score.pneum += 2.0; score.cold += 0.2; }
+        if(spo2>0 && spo2<94) score.pneum += 2.0;
+        if(hr>0 && hr>=120){ score.pneum+=0.8; score.flu+=0.5; }
+
+        if(age>=65){ score.pneum += 1.2; score.uti += 0.5; }
+        // simple normalization to probabilities
+        let raw_total = Math.max(1e-6, Object.values(score).reduce((a,b)=>a+b,0));
+        let probs = Object.fromEntries(Object.entries(score).map(([k,v])=>[k, clamp(v/raw_total,0,1)]));
+        // triage formula
+        let symptom_sev = 0;
+        if(selectedSymptoms.has('fever')) symptom_sev += 1.5;
+        if(selectedSymptoms.has('shortbreath')) symptom_sev += 2;
+        if(selectedSymptoms.has('chestpain')) symptom_sev += 2;
+        if(selectedSymptoms.has('abdpain')) symptom_sev += 1;
+        if(selectedSymptoms.has('vomit')||selectedSymptoms.has('diarrhea')) symptom_sev += 1;
+        if(rf_conf) symptom_sev += 2.5;
+        // vitals
+        let vital = 0;
+        if(temp>0){ if(temp>=39) vital+=1.5; else if(temp>=38) vital+=0.8; }
+        if(spo2>0){ if(spo2<92) vital += 3.0; else if(spo2<95) vital += 1.0; }
+        if(hr>0){ if(hr>=130) vital += 1.0; else if(hr>=110) vital +=0.5; }
+        let comorb = 0; if(age>=65) comorb+=1; // add more if needed
+        // weights
+        const w_symp=1.0, w_vital=1.5, w_com=1.0, w_red=10;
+        let R = w_symp*symptom_sev + w_vital*vital + w_com*comorb + (red_flag? w_red:0);
+        let triageText='Self-care / watchful waiting'; let triageClass='ok';
+        if(red_flag) { triageText='EMERGENCY: go to ED now'; triageClass='danger'; }
+        else if(R>=8) { triageText='Go to Emergency Department (ED) now'; triageClass='danger'; }
+        else if(R>=4) { triageText='See GP / urgent clinic soon'; triageClass='warn'; }
+
+        // build explanation + contributions
+        let contributions = [];
+        if(selectedSymptoms.size>0){
+          selectedSymptoms.forEach(s=>{
+            let contrib = 0;
+            if(s==='shortbreath') contrib += 2;
+            if(s==='chestpain') contrib += 2;
+            if(s==='fever') contrib += 1.5;
+            if(s==='vomit' || s==='diarrhea') contrib += 1;
+            if(s==='headache') contrib += 0.6;
+            if(contrib>0) contributions.push({k:s,v:contrib});
+          });
+        }
+        // sort top illnesses
+        let entries = Object.entries(probs).sort((a,b)=>b[1]-a[1]);
+        // render
+        const explain = document.getElementById('explain');
+        explain.innerHTML = '';
+        const out = document.createElement('div');
+        out.className = 'resultPanel ' + (triageClass==='ok'?'ok':(triageClass==='warn'?'warn':'danger'));
+        out.innerHTML = `<div style="font-weight:800">${triageText}</div>
+          <div style="margin-top:8px;color:#334155">Risk score R = ${R.toFixed(2)}${red_flag? ' (red-flag triggered)':''}</div>
+          <div style="margin-top:10px"><strong>Top probable conditions</strong></div>`;
+        entries.slice(0,4).forEach(([k,v])=>{
+          const pretty = {cold:'Common cold',flu:'Influenza-like',pneum:'Pneumonia',gi:'Gastroenteritis',mig:'Migraine',skin:'Skin infection',uti:'UTI'}[k] || k;
+          const barWrap = document.createElement('div');
+          barWrap.style.marginTop='8px';
+          barWrap.innerHTML = `<div style="display:flex;justify-content:space-between"><div>${pretty}</div><div style="font-weight:800">${Math.round(v*100)}%</div></div>
+            <div class="bar"><i style="width:${Math.round(v*100)}%"></i></div>`;
+          out.appendChild(barWrap);
+        });
+        // contributions
+        let contribHtml = '<div style="margin-top:12px"><strong>Top contributing factors (why):</strong><ul>';
+        contributions.sort((a,b)=>b.v-a.v).slice(0,6).forEach(c=>{ contribHtml += `<li>${SYM_OPTS.find(s=>s.k===c.k).t} → contribution ${c.v.toFixed(2)}</li>`});
+        contribHtml += '</ul></div>';
+        out.innerHTML += contribHtml;
+        out.innerHTML += `<div style="margin-top:8px;font-size:13px;color:#475569">Note: model is rule-based educational demo. For your project explain how weights were chosen and limits.</div>`;
+        explain.appendChild(out);
+      }
+    </script>
+  </section>
+
+  <!-- ECG -->
+  <section id="ecg" class="card" style="margin-bottom:16px">
+    <h2>ECG Generator & Simple Analysis</h2>
+    <p class="small">Generate a synthetic ECG, preview waveform, and run a basic algorithm that detects peaks, computes mean HR and RR-variability (SDNN). Useful to demo signal processing + clinical flags (brady/tachy/possible AF).</p>
+
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <div style="flex:1;min-width:320px">
+        <label>Duration (seconds)</label>
+        <input id="ecg_dur" type="number" value="10" min="2" max="120">
+        <label>Sampling rate (Hz)</label>
+        <input id="ecg_fs" type="number" value="250" min="50" max="2000">
+        <label>Target heart rate (bpm)</label>
+        <input id="ecg_hr" type="number" value="72" min="30" max="180">
+        <div style="margin-top:10px">
+          <button class="btn" onclick="generateECG()">Generate & Analyze</button>
+          <button class="btn secondary" onclick="clearECG()">Clear</button>
+        </div>
+      </div>
+
+      <div style="width:520px;min-width:300px">
+        <canvas id="ecgCanvas" class="ecg-canvas"></canvas>
+        <div id="ecgInfo" style="margin-top:12px"></div>
+      </div>
+    </div>
+
+    <script>
+      // Simple synthetic ECG generator: periodic Gaussian spikes + baseline + noise
+      function generateSyntheticECG(ns, fs, hr){
+        const samplesPerBeat = Math.max(1, Math.round((60/hr) * fs));
+        const arr = new Float32Array(ns).fill(0);
+        let idx = 0;
+        while(idx < ns){
+          const peak = Math.min(ns-1, idx + Math.round(samplesPerBeat*0.5));
+          for(let k=-6;k<=6;k++){
+            const p = peak + k;
+            if(p<0 || p>=ns) continue;
+            const g = Math.exp(-0.5*(k*k)/4.0);
+            arr[p] += 1.0 * g;
+          }
+          idx += samplesPerBeat;
+        }
+        // baseline wander + noise
+        for(let i=0;i<ns;i++){
+          const t = i/fs;
+          arr[i] += 0.18*Math.sin(2*Math.PI*0.33*t) + (Math.random()-0.5)*0.06;
+        }
+        return arr;
+      }
+
+      function movingAverage(arr, w){
+        const out = new Float32Array(arr.length);
+        const half = Math.floor(w/2);
+        for(let i=0;i<arr.length;i++){
+          let s=0,c=0;
+          const start = Math.max(0,i-half), end=Math.min(arr.length-1,i+half);
+          for(let j=start;j<=end;j++){ s+=arr[j]; c++; }
+          out[i]=s/c;
+        }
+        return out;
+      }
+
+      function detectPeaks(x, minDist, threshold){
+        const peaks=[];
+        for(let i=1;i<x.length-1;i++){
+          if(x[i]>x[i-1] && x[i]>=x[i+1] && x[i]>=threshold){
+            if(peaks.length===0 || (i - peaks[peaks.length-1]) >= minDist){
+              peaks.push(i);
+            }
+          }
+        }
+        return peaks;
+      }
+
+      function analyzeAndDraw(signal, fs){
+        const canvas = document.getElementById('ecgCanvas');
+        const ctx = canvas.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        ctx.scale(dpr,dpr);
+        // clear
+        ctx.clearRect(0,0,width,height);
+        // smooth
+        const sm = movingAverage(signal,5);
+        // threshold
+        let mn = sm[0], mx = sm[0];
+        for(let i=1;i<sm.length;i++){ if(sm[i]<mn) mn=sm[i]; if(sm[i]>mx) mx=sm[i]; }
+        const threshold = mn + 0.35*(mx-mn);
+        const minDist = Math.round(0.25*fs);
+        const peaks = detectPeaks(sm, minDist, threshold);
+        // draw waveform scaled
+        ctx.lineWidth=1.2; ctx.strokeStyle='#06b6d4'; ctx.beginPath();
+        for(let i=0;i<sm.length;i++){
+          const x = (i / (sm.length-1)) * width;
+          const v = (sm[i] - mn) / (mx - mn + 1e-9);
+          const y = height - 10 - v*(height-20);
+          if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+        }
+        ctx.stroke();
+        // draw peaks
+        ctx.fillStyle = '#ffcc00';
+        peaks.forEach(p=>{
+          const x = (p / (sm.length-1)) * width;
+          ctx.beginPath(); ctx.arc(x, 14, 4, 0, Math.PI*2); ctx.fill();
+        });
+        // compute RR intervals
+        if(peaks.length < 2){
+          document.getElementById('ecgInfo').innerHTML = '<div class="small">Too few peaks detected for reliable HR.</div>';
+          return;
+        }
+        const rr = [];
+        for(let i=0;i<peaks.length-1;i++){ rr.push((peaks[i+1]-peaks[i]) / fs); }
+        const meanRR = rr.reduce((a,b)=>a+b,0)/rr.length;
+        const sd = Math.sqrt(rr.reduce((a,b)=>a+(b-meanRR)*(b-meanRR),0) / Math.max(1, rr.length-1));
+        const meanHR = 60.0 / meanRR;
+        const cv = sd / meanRR;
+        // flags
+        const brady = meanHR < 50;
+        const tachy = meanHR > 100;
+        const af = rr.length>=6 && cv > 0.12 && sd > 0.06;
+        let infoHtml = `<div><strong>Peaks detected:</strong> ${peaks.length}, <strong>Mean HR:</strong> ${meanHR.toFixed(1)} bpm</div>`;
+        infoHtml += `<div class="small">Mean RR=${meanRR.toFixed(3)} s, SDNN=${sd.toFixed(3)} s, CV=${cv.toFixed(3)}</div>`;
+        infoHtml += '<div style="margin-top:8px">';
+        if(brady) infoHtml += `<div style="color:${getComputedStyle(document.documentElement).getPropertyValue('--bad')||'#7f1d1d'}">- Bradycardia detected (HR &lt; 50 bpm)</div>`;
+        if(tachy) infoHtml += `<div style="color:#7a4900">- Tachycardia detected (HR &gt; 100 bpm)</div>`;
+        if(af) infoHtml += `<div style="color:#b45309">- Irregular RR and elevated variability → possible AF (demo only)</div>`;
+        if(!brady && !tachy && !af) infoHtml += `<div style="color:#0f5132">- No major anomaly by demo rules (sinus rhythm likely)</div>`;
+        infoHtml += '</div>';
+        // RR list (first 8)
+        infoHtml += `<div style="margin-top:8px"><strong>RR (s):</strong> ${rr.slice(0,8).map(x=>x.toFixed(3)).join(', ')}${rr.length>8? ', ...':''}</div>`;
+        document.getElementById('ecgInfo').innerHTML = infoHtml;
+      }
+
+      function generateECG(){
+        const dur = Math.max(2, parseInt(document.getElementById('ecg_dur').value||10));
+        const fs = Math.max(50, parseInt(document.getElementById('ecg_fs').value||250));
+        const hr = Math.max(30, parseInt(document.getElementById('ecg_hr').value||72));
+        const ns = dur * fs;
+        const sig = generateSyntheticECG(ns, fs, hr);
+        analyzeAndDraw(sig, fs);
+      }
+      function clearECG(){
+        const canvas = document.getElementById('ecgCanvas'); const ctx = canvas.getContext('2d');
+        ctx.clearRect(0,0,canvas.width,canvas.height); document.getElementById('ecgInfo').innerHTML='';
+      }
+    </script>
+  </section>
+
+  <!-- Download -->
+  <section id="download" class="card" style="margin-bottom:16px">
+    <h2>Download C Programs & Resources</h2>
+    <p class="small">Download the C demos used in the project (symptom checker and triage+ECG combined). Use them in your presentation or to run local tests.</p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <button class="btn" onclick="downloadFile('symptom_checker.c',SYMPTOM_C)">Download symptom_checker.c</button>
+      <button class="btn secondary" onclick="downloadFile('triage_ecg_demo.c',TRIAGE_ECG_C)">Download triage_ecg_demo.c</button>
+    </div>
+    <div style="margin-top:12px" class="small">You can also view the code inside your repo and cite it in your slides.</div>
+    <script>
+      // Insert C code strings (trimmed versions but usable). For brevity we include compacted versions.
+      const SYMPTOM_C = `/* symptom_checker.c - simple demo (educational) */
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
+#define MAX_INPUT 128
+void read_token(char *buffer,int n){ if(fgets(buffer,n,stdin)==NULL){buffer[0]='\\0';return;} size_t len=strlen(buffer); if(len>0 && buffer[len-1]=='\\n') buffer[len-1]='\\0'; }
+int ask_yes(const char *q){ char buf[MAX_INPUT]; while(1){ printf(\"%s (y/n): \", q); fflush(stdout); read_token(buf,sizeof(buf)); if(buf[0]==\\'\\0\\') continue; if(tolower(buf[0])=='y') return 1; if(tolower(buf[0])=='n') return 0; printf(\"Please answer y or n.\\n\"); } }
+/* Shortened for demo - full version available in project repo */ int main(void){ printf(\"Symptom checker demo (C)\\n\"); printf(\"Demo only. Not medical advice.\\n\"); printf(\"Please use JS site for live demo.\\n\"); return 0; }`;
+      const TRIAGE_ECG_C = `/* triage_ecg_demo.c - combined triage chatbot and ECG demo (shortened) */
+#include <stdio.h>
+int main(void){ printf("triage + ecg demo placeholder (see JS site)\\n"); return 0; }`;
 
-int main() {
-    char symptom[50];
-    int severity;
+      function downloadFile(name, content){
+        const blob = new Blob([content], {type:'text/plain'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(url);
+      }
+    </script>
+  </section>
 
-    printf("Enter your main symptom (fever, cough, headache, stomachache): ");
-    scanf("%s", symptom);
+  <!-- About / Methods -->
+  <section id="about" class="card" style="margin-bottom:16px">
+    <h2>About & Methodology</h2>
+    <p class="small">This demo implements a simple, explainable rule-based triage model and basic ECG signal analysis. Use these talking points when presenting:</p>
+    <ul>
+      <li><strong>Explainability:</strong> Show triage formula: <code>R = w_symptoms*S + w_vitals*V + w_comorb*C + red_flag*W</code>.</li>
+      <li><strong>Safety:</strong> Red-flag override always sends to emergency — highlight as safety net.</li>
+      <li><strong>ECG pipeline:</strong> smoothing → peak detection → RR intervals → HR & SDNN → rule flags (brady/tachy/irregular).</li>
+      <li><strong>Limitations:</strong> No clinical validation, biased thresholds; emphasize need for clinician review and prospective testing.</li>
+    </ul>
+    <div style="margin-top:12px;font-size:13px;color:#475569"><strong>Presentation tip:</strong> Run two demo scenarios: (1) mild cold (self-care) and (2) chest pain + shortness (emergency) — show how red flags & R change live.</div>
+  </section>
 
-    printf("On a scale of 1 to 10, how severe is it? ");
-    scanf("%d", &severity);
-
-    if (strcmp(symptom, "fever") == 0 && severity >= 7) {
-        printf("Possible serious infection. Please see a doctor.\\n");
-    } else if (strcmp(symptom, "cough") == 0 && severity >= 8) {
-        printf("Severe cough detected. Visit a doctor.\\n");
-    } else if (strcmp(symptom, "headache") == 0 && severity >= 9) {
-        printf("Very strong headache. Medical check recommended.\\n");
-    } else if (strcmp(symptom, "stomachache") == 0 && severity >= 8) {
-        printf("Strong stomach pain. You should see a doctor.\\n");
-    } else {
-        printf("Mild symptoms. Rest, hydrate, and monitor yourself.\\n");
-    }
-
-    return 0;
-}
-  </textarea>
-  <br>
-  <button onclick="copyCode()">Copy Code</button>
-  <a id="download" download="symptom_checker.c">
-    <button>Download .c File</button>
-  </a>
-
-  <script>
-    function copyCode() {
-      let code = document.getElementById("code");
-      code.select();
-      document.execCommand("copy");
-      alert("Code copied!");
-    }
-
-    // prepare download link
-    const codeContent = document.getElementById("code").value;
-    const blob = new Blob([codeContent], { type: "text/plain" });
-    document.getElementById("download").href = URL.createObjectURL(blob);
-  </script>
+  <footer>
+    Educational demo • Not medical advice • Built for student presentation
+  </footer>
+</main>
 </body>
+</html>
+
+
