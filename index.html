@@ -1,0 +1,86 @@
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Symptom Checker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      text-align: center;
+      padding: 30px;
+    }
+    textarea {
+      width: 80%;
+      height: 200px;
+      margin: 20px 0;
+      font-family: monospace;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    pre {
+      text-align: left;
+      background: #eee;
+      padding: 10px;
+      border-radius: 6px;
+      width: 80%;
+      margin: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>Symptom Checker – C Program</h1>
+  <p>Here is the C program you can copy or download:</p>
+  <textarea id="code" readonly>
+#include <stdio.h>
+#include <string.h>
+
+int main() {
+    char symptom[50];
+    int severity;
+
+    printf("Enter your main symptom (fever, cough, headache, stomachache): ");
+    scanf("%s", symptom);
+
+    printf("On a scale of 1 to 10, how severe is it? ");
+    scanf("%d", &severity);
+
+    if (strcmp(symptom, "fever") == 0 && severity >= 7) {
+        printf("Possible serious infection. Please see a doctor.\\n");
+    } else if (strcmp(symptom, "cough") == 0 && severity >= 8) {
+        printf("Severe cough detected. Visit a doctor.\\n");
+    } else if (strcmp(symptom, "headache") == 0 && severity >= 9) {
+        printf("Very strong headache. Medical check recommended.\\n");
+    } else if (strcmp(symptom, "stomachache") == 0 && severity >= 8) {
+        printf("Strong stomach pain. You should see a doctor.\\n");
+    } else {
+        printf("Mild symptoms. Rest, hydrate, and monitor yourself.\\n");
+    }
+
+    return 0;
+}
+  </textarea>
+  <br>
+  <button onclick="copyCode()">Copy Code</button>
+  <a id="download" download="symptom_checker.c">
+    <button>Download .c File</button>
+  </a>
+
+  <script>
+    function copyCode() {
+      let code = document.getElementById("code");
+      code.select();
+      document.execCommand("copy");
+      alert("Code copied!");
+    }
+
+    // prepare download link
+    const codeContent = document.getElementById("code").value;
+    const blob = new Blob([codeContent], { type: "text/plain" });
+    document.getElementById("download").href = URL.createObjectURL(blob);
+  </script>
+</body>
